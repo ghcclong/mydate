@@ -109,7 +109,10 @@ wireguard_install(){
 
 v2ray_install(){
 	bash <(curl -L -s https://install.direct/go.sh)
+	vim /etc/v2ray/config.json
 }
+
+
 
 bbr_install(){
 	echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
@@ -125,8 +128,8 @@ start_menu(){
     clear
     echo "1. 升级内核（需要重启实例）"
 	echo "2. 安装BBR加速"
-    echo "3. 安装Wireguard"
-	echo "4. 安装V2Ray"
+	echo "3. 安装V2Ray"
+    echo "4. 安装Wireguard"
     echo "5. 退出脚本"
     echo
     read -p "请输入数字:" num
@@ -138,10 +141,10 @@ start_menu(){
 	bbr_install
 	;;
 	3)
-	wireguard_install
+	v2ray_install
 	;;
 	4)
-	v2ray_install
+	wireguard_install
 	;;
 	5)
 	exit 1
