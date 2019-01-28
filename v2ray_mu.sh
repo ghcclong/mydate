@@ -69,6 +69,21 @@ xshell_root(){
 	fi
 }
 
+str_v2ray(){
+service v2ray start
+service v2ray status
+}
+
+sta_v2ray(){
+service v2ray status
+}
+
+rst_v2ray(){
+systemctl restart v2ray
+#service v2ray restart
+service v2ray status
+}
+
 #开始菜单
 start_menu(){
     clear
