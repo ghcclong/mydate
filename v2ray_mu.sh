@@ -37,6 +37,8 @@ update_kernel(){
 v2ray_install(){
 	bash <(curl -L -s https://install.direct/go.sh)
 	#vim /etc/v2ray/config.json
+	service v2ray start
+	service v2ray status
 	curl icanhazip.com
 	nl /etc/v2ray/config.json | sed '/port/p'
 	nl /etc/v2ray/config.json | sed '/protocol/p'
