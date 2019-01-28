@@ -60,7 +60,13 @@ bbr_install(){
 xshell_root(){
 	sed -i 's/PermitRootLogin no/PermitRootLogin yes\nPasswordAuthentication yes/' /etc/ssh/sshd_config
 	passwd root
-	systemctl restart ssh
+	#systemctl restart ssh
+    read -p "重启后可在XSHELL登陆，是否现在重启 ? [Y/n] :" yn
+	[ -z "${yn}" ] && yn="y"
+	if [[ $yn == [Yy] ]]; then
+		echo -e "${Info} 重启中..."
+		reboot
+	fi
 }
 
 #开始菜单
