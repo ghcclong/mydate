@@ -91,7 +91,10 @@ start_menu(){
 	echo "2. 打开BBR加速"
 	echo "3. 安装V2Ray"
     echo "4. 配置shell登陆（需要设置ROOT密码）"
-    echo "5. 退出脚本"
+    echo "5. 启动"
+	echo "6. 状态"
+    echo "7. 重启"
+    echo "8. 退出脚本"
     echo
     read -p "请输入数字:" num
     case "$num" in
@@ -108,6 +111,15 @@ start_menu(){
 	xshell_root
 	;;
 	5)
+	str_v2ray
+	;;
+	6)
+	sta_v2ray
+	;;
+	7)
+	rst_v2ray
+	;;
+	8)
 	exit 1
 	;;
 	*)
