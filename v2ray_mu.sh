@@ -36,13 +36,13 @@ update_kernel(){
 
 v2ray_install(){
 	bash <(curl -L -s https://install.direct/go.sh)
-	#vim /etc/v2ray/config.json
-	service v2ray start
-	service v2ray status
-	echo "Address:\"$(curl -s icanhazip.com)\""
-	sed -n '/port/p' /etc/v2ray/config.json
-	sed -n '/id/p' /etc/v2ray/config.json
-	sed -n '/alterId/p' /etc/v2ray/config.json
+	vim /etc/v2ray/config.json
+	# service v2ray start
+	# service v2ray status
+	# echo "Address:\"$(curl -s icanhazip.com)\""
+	# sed -n '/port/p' /etc/v2ray/config.json
+	# sed -n '/id/p' /etc/v2ray/config.json
+	# sed -n '/alterId/p' /etc/v2ray/config.json
 	}
 
 bbr_install(){
