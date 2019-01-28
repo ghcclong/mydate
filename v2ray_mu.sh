@@ -39,11 +39,11 @@ v2ray_install(){
 	#vim /etc/v2ray/config.json
 	service v2ray start
 	service v2ray status
+	echo "Address:\"$(curl -s icanhazip.com)\""
 	curl icanhazip.com
-	nl /etc/v2ray/config.json | sed '/port/p'
-	nl /etc/v2ray/config.json | sed '/protocol/p'
-	nl /etc/v2ray/config.json | sed '/id/p'
-	nl /etc/v2ray/config.json | sed '/alterId/p'
+	sed -n '/port/p' /etc/v2ray/config.json
+	sed -n '/id/p' /etc/v2ray/config.json
+	sed -n '/alterId/p' /etc/v2ray/config.json
 	}
 
 bbr_install(){
