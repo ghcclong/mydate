@@ -52,6 +52,7 @@ bbr_install(){
 	echo 1 > /proc/sys/net/ipv4/ip_forward
 	echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
 	sysctl -p
+	sysctl -a |grep net.ipv4.ip_forward
 	sysctl net.ipv4.tcp_available_congestion_control
 	lsmod | grep bbr
 }
