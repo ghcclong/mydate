@@ -50,7 +50,7 @@ bbr_install(){
 	echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
 	echo 3 > /proc/sys/net/ipv4/tcp_fastopen
 	echo 1 > /proc/sys/net/ipv4/ip_forward
-	echo "net.ipv4.ip_forward = 1" > /etc/sysctl.conf
+	echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
 	sysctl -p
 	sysctl net.ipv4.tcp_available_congestion_control
 	lsmod | grep bbr
