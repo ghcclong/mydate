@@ -40,7 +40,6 @@ v2ray_install(){
 	service v2ray start
 	service v2ray status
 	echo "Address:\"$(curl -s icanhazip.com)\""
-	curl icanhazip.com
 	sed -n '/port/p' /etc/v2ray/config.json
 	sed -n '/id/p' /etc/v2ray/config.json
 	sed -n '/alterId/p' /etc/v2ray/config.json
