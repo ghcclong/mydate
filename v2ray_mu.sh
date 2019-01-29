@@ -87,13 +87,14 @@ service v2ray status
 #开始菜单
 start_menu(){
     clear
-    echo "1. 升级内核（需要重启实例）"
-	echo "2. 打开BBR加速"
-	echo "3. 安装V2Ray"
+    echo -e "\033[32m 1. 升级CentOS内核（需要重启实例）\033[0m"
+	echo -e "\033[32m 2. 打开BBR加速 \033[0m"
+	echo -e "\033[32m 3. 安装V2Ray \033[0m"
+	echo -e "\033[41;33m》》》步骤【1-3】需要按顺序执行《《《\033[0m"
     echo "4. 配置shell登陆（需要设置ROOT密码）"
-    echo "5. 启动"
-	echo "6. 状态"
-    echo "7. 重启"
+    echo "5. 启动V2Ray服务"
+	echo "6. 查看V2Ray状态"
+    echo "7. 重启V2Ray"
     echo "8. 退出脚本"
     echo
     read -p "请输入数字:" num
