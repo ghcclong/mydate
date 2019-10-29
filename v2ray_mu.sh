@@ -2,15 +2,13 @@
 
 #判断系统
 if [ ! -e '/etc/redhat-release' ]; then
-echo "仅支持centos7"
-exit
+	echo "仅支持centos7"
+	exit
 fi
 if  [ -n "$(grep ' 6\.' /etc/redhat-release)" ] ;then
-echo "仅支持centos7"
-exit
+	echo "仅支持centos7"
+	exit
 fi
-
-
 
 #更新内核
 update_kernel(){
@@ -19,111 +17,113 @@ update_kernel(){
     sed -i "0,/enabled=0/s//enabled=1/" /etc/yum.repos.d/epel.repo
     yum remove -y kernel-devel
     rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
-	#666
-    rpm -Uvh https://www.elrepo.org/elrepo-release-7.0-4.el7.elrepo.noarch.rpm
+    rpm -Uvh https://www.elrepo.org/elrepo-release-7.0-3.el7.elrepo.noarch.rpm
     yum --disablerepo="*" --enablerepo="elrepo-kernel" list available
     yum -y --enablerepo=elrepo-kernel install kernel-ml
     sed -i "s/GRUB_DEFAULT=saved/GRUB_DEFAULT=0/" /etc/default/grub
     grub2-mkconfig -o /boot/grub2/grub.cfg
-	#666
-    wget https://elrepo.org/linux/kernel/el7/x86_64/RPMS/kernel-ml-devel-5.3.7-1.el7.elrepo.x86_64.rpm
-    rpm -ivh kernel-ml-devel-5.3.7-1.el7.elrepo.x86_64.rpm
+    wget https://elrepo.org/linux/kernel/el7/x86_64/RPMS/kernel-ml-devel-4.20.4-1.el7.elrepo.x86_64.rpm
+    rpm -ivh kernel-ml-devel-4.20.4-1.el7.elrepo.x86_64.rpm
     yum -y --enablerepo=elrepo-kernel install kernel-ml-devel
-    read -p "需要重启VPS，再次执行脚本选择安装wireguard，是否现在重启 ? [Y/n] :" yn
+	timedatectl set-timezone Asia/Shanghai
+    read -p "需要重启实例，是否现在重启 ? [Y/n] :" yn
 	[ -z "${yn}" ] && yn="y"
 	if [[ $yn == [Yy] ]]; then
-		echo -e "${Info} VPS 重启中..."
+		echo -e "${Info} 重启中..."
 		reboot
 	fi
 }
 
-#生成随机端口
-rand(){
-    min=$1
-    max=$(($2-$min+1))
-    num=$(cat /dev/urandom | head -n 10 | cksum | awk -F ' ' '{print $1}')
-    echo $(($num%$max+$min))  
+v2ray_install(){
+	bash <(curl -L -s https://install.direct/go.sh)
+	vim /etc/v2ray/config.json
+	# service v2ray start
+	# service v2ray status
+	# echo "Address:\"$(curl -s icanhazip.com)\""
+	# sed -n '/port/p' /etc/v2ray/config.json
+	# sed -n '/id/p' /etc/v2ray/config.json
+	# sed -n '/alterId/p' /etc/v2ray/config.json
+	}
+
+bbr_install(){
+	echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
+	echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
+	echo 3 > /proc/sys/net/ipv4/tcp_fastopen
+	echo 1 > /proc/sys/net/ipv4/ip_forward
+	echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
+	sysctl -p
+	sysctl -a |grep net.ipv4.ip_forward
+	sysctl net.ipv4.tcp_available_congestion_control
+	lsmod | grep bbr
 }
 
-config_client(){
-cat > /etc/wireguard/client.conf <<-EOF
-[Interface]
-PrivateKey = $c1
-Address = 10.0.0.2/24 
-DNS = 8.8.8.8
-MTU = 1420
-
-[Peer]
-PublicKey = $s2
-Endpoint = $serverip:$port
-AllowedIPs = 0.0.0.0/0, ::0/0
-PersistentKeepalive = 25
-EOF
-
+xshell_root(){
+	sed -i 's/PermitRootLogin no/PermitRootLogin yes\nPasswordAuthentication yes/' /etc/ssh/sshd_config
+	passwd root
+	#systemctl restart ssh
+    read -p "重启后可在XSHELL登陆，是否现在重启 ? [Y/n] :" yn
+	[ -z "${yn}" ] && yn="y"
+	if [[ $yn == [Yy] ]]; then
+		echo -e "${Info} 重启中..."
+		reboot
+	fi
 }
 
-#centos7安装wireguard
-wireguard_install(){
-    sudo curl -Lo /etc/yum.repos.d/wireguard.repo https://copr.fedorainfracloud.org/coprs/jdoss/wireguard/repo/epel-7/jdoss-wireguard-epel-7.repo
-    sudo yum install -y dkms gcc-c++ gcc-gfortran glibc-headers glibc-devel libquadmath-devel libtool systemtap systemtap-devel
-    sudo yum -y install wireguard-dkms wireguard-tools
-    mkdir /etc/wireguard
-    cd /etc/wireguard
-    wg genkey | tee sprivatekey | wg pubkey > spublickey
-    wg genkey | tee cprivatekey | wg pubkey > cpublickey
-    s1=$(cat sprivatekey)
-    s2=$(cat spublickey)
-    c1=$(cat cprivatekey)
-    c2=$(cat cpublickey)
-    serverip=$(curl icanhazip.com)
-    port=$(rand 10000 60000)
-    chmod 777 -R /etc/wireguard
-    systemctl stop firewalld
-    systemctl disable firewalld
-    yum install -y iptables-services 
-    systemctl enable iptables 
-    systemctl start iptables 
-    iptables -F
-    service iptables save
-    service iptables restart
-    echo 1 > /proc/sys/net/ipv4/ip_forward
-    echo "net.ipv4.ip_forward = 1" > /etc/sysctl.conf	
-cat > /etc/wireguard/wg0.conf <<-EOF
-[Interface]
-PrivateKey = $s1
-Address = 10.0.0.1/24 
-PostUp   = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -A FORWARD -o wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -D FORWARD -o wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
-ListenPort = $port
-DNS = 8.8.8.8
-MTU = 1420
+str_v2ray(){
+service v2ray start
+service v2ray status
+}
 
-[Peer]
-PublicKey = $c2
-AllowedIPs = 10.0.0.2/32
-EOF
+sta_v2ray(){
+service v2ray status
+}
 
-    config_client
-    wg-quick up wg0
-    systemctl enable wg-quick@wg0
+rst_v2ray(){
+systemctl restart v2ray
+#service v2ray restart
+service v2ray status
 }
 
 #开始菜单
 start_menu(){
     clear
-    echo "1. 升级系统内核"
-    echo "2. 安装wireguard"
-    echo "3. 退出脚本"
+	echo ""
+	echo ""
+	echo -e "\033[41;33m   》步骤【1-3】需要按顺序执行》\033[0m"
+    echo -e "\033[32m   1. 升级CentOS内核（需要重启实例）\033[0m"
+	echo -e "\033[32m   2. 打开BBR加速 \033[0m"
+	echo -e "\033[32m   3. 安装V2Ray \033[0m"
+	#echo -e "\033[41;33m   》步骤【1-3】需要按顺序执行》\033[0m"
+    echo "   4. 配置shell登陆（需要设置ROOT密码）"
+    echo "   5. 启动V2Ray服务"
+	echo "   6. 查看V2Ray状态"
+    echo "   7. 重启V2Ray"
+    echo "   8. 退出"
     echo
     read -p "请输入数字:" num
     case "$num" in
-    	1)
+    1)
 	update_kernel
 	;;
 	2)
-	wireguard_install
+	bbr_install
 	;;
 	3)
+	v2ray_install
+	;;
+	4)
+	xshell_root
+	;;
+	5)
+	str_v2ray
+	;;
+	6)
+	sta_v2ray
+	;;
+	7)
+	rst_v2ray
+	;;
+	8)
 	exit 1
 	;;
 	*)
